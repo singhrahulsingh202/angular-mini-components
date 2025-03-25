@@ -1,17 +1,16 @@
 import { Component } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { DatepickerComponent } from './app-components/datepicker/datepicker.component';
 
 @Component({
+  standalone: true,
   selector: 'app-root',
-  template: `
-    <h1>Hello from {{ name }}!</h1>
-    <a target="_blank" href="https://angular.dev/overview">
-      Learn more about Angular
-    </a>
-  `,
+  templateUrl: 'main.component.html',
+  imports: [DatepickerComponent]
 })
 export class App {
   name = 'Angular';
+  
 }
 
 bootstrapApplication(App);
