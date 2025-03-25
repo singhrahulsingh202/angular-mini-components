@@ -1,0 +1,13 @@
+private readonly app: ApplicationRef,
+
+rangeClick(): void{
+      this.isCalendarClicked = true;
+      const newNode = document.createElement("div");
+      newNode.id = "mbusf-filters";
+      document.querySelectorAll('.mat-datepicker-content')[0].appendChild(newNode); // MbusfDateFiltersComponent is the custom UI component to be added to library component lets say date picker
+      const componentRef = createComponent(MbusfDateFiltersComponent, {
+        environmentInjector: this.app.injector,
+        hostElement: newNode, 
+      });
+      this.app.attachView(componentRef.hostView);
+  }
