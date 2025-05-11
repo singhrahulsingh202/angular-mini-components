@@ -1,0 +1,23 @@
+  openEmailClient(): void {
+    this.subscription.add(this.translationUtilities.fetchTranslations('financials.creditLineReview.requestCreditLineSubject', {payerNumber : this.selectedPayer}).pipe(
+      combineLatestWith(
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageBody1'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageBody2'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.temporaryCreditLineOptions'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.permanentCreditLineOptions'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageFooter')
+      )
+    ).subscribe(([requestCreditLineSubject, messageBody1, messageBody2, temporaryOptions, permanentOptions, messageFooter]) => {
+      const email = CREDIT_TEAM_EMAIL;
+      const subject = requestCreditLineSubject;
+      const optionList = this.selectedRequestType === TEMPORARY_CREDIT_LINE_INCREASE ? temporaryOptions : permanentOptions;
+      const uri = 
+      `${messageBody1}\n`+
+      `${messageBody2}\n`+
+      `${optionList}\n\n`+
+      `\n${messageFooter}`;
+      const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(uri)}`;
+      window.location.href = mailtoLink;
+    }
+    ));
+  }
