@@ -1,0 +1,108 @@
+  openEmailClient(): void {
+    this.subscription.add(this.translationUtilities.fetchTranslations('financials.creditLineReview.requestCreditLineSubject', {payerNumber : this.selectedPayer}).pipe(
+      combineLatestWith(
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageBody1'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageBody2'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.temporaryCreditLineOptions'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.permanentCreditLineOptions'),
+        this.translationUtilities.fetchTranslations('financials.creditLineReview.emailBody.messageFooter')
+      )
+    ).subscribe(([requestCreditLineSubject, messageBody1, messageBody2, temporaryOptions, permanentOptions, messageFooter]) => {
+      const email = CREDIT_TEAM_EMAIL;
+      const subject = requestCreditLineSubject;
+      const optionList = this.selectedRequestType === TEMPORARY_CREDIT_LINE_INCREASE ? temporaryOptions : permanentOptions;
+      const uri = 
+      `${messageBody1}\n`+
+      `${messageBody2}\n`+
+      `${optionList}\n\n`+
+      `\n${messageFooter}`;
+      const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(uri)}`;
+      window.location.href = mailtoLink;
+    }
+    ));
+  }
+
+  ####################Logic to delay api call#######################
+this.subscription.add(
+      this.customerSelectionForm.controls.searchTerm.valueChanges
+        .pipe(debounceTime(300))
+        .subscribe((searchTermValue) => {
+          this.handleSearchTerm(searchTermValue);
+        })
+    ); 
+
+
+#######################################Spartacus Best Practices########################################
+Array operations: ex: concat(), slice(), splice(), shift(), unshift(), some(),sort(), every(), filter(), find(), foreach(), map(), reduce(), reduceRight().
+Don’t manipulate the document (DOM) directly. Use OOTB WindowRef, ElementRef,.. 
+
+############################Overriding services##########################
+providers: [
+    AsmDisableService,
+    {
+      provide: USER_NORMALIZER,
+      useClass: MhUserNormalizer,
+      multi: true,
+    },
+    SystemAvailableService,
+    { provide: AuthRedirectService, useExisting: MarkethubRedirectService },
+    { provide: BaseSiteService, useExisting: MarkethubBaseSiteService },
+    { provide: ProtectedRoutesGuard, useExisting: MarkethubProtectedRoutesGuardService },
+
+#############import data from csv ###############
+UPDATE CountryLanguages;code[unique=true];languageName[lang=cs]
+"#% CSVReader reader = new CSVReader( ImpExManager.class.getResourceAsStream(""/markethubinitialdata/import/coredata/common/data/CountryLanguages_cs.csv""), ""utf-8"" );"
+"#% reader.setMaxBufferLines(100000);"
+"#% reader.setFieldSeparator(new char[] {','});"
+"#% impex.includeExternalData( reader, 0, -1 );"
+
+
+
+####################routing with tabs each tab will redirect to other page#####
+<div class="mb-usf-grids mbusf--consumer-feedback mbusf-site-logistics container">
+    <mat-tab-group class="mbusf-tabs" [(selectedIndex)]="selectedIndex$" 
+    (selectedTabChange)="select($event)">
+        <mat-tab label="{{ 'supply.allocations' | cxTranslate}}">
+            <app-us-cf-allocations></app-us-cf-allocations>
+        </mat-tab>
+        <mat-tab label="{{ 'supply.bols' | cxTranslate}}"></mat-tab>
+        <mat-tab label="{{ 'supply.carrierDriverLastLift' | cxTranslate}}"></mat-tab>
+        <mat-tab label="{{ 'supply.terminalPeakTimes' | cxTranslate}}"></mat-tab>
+        <mat-tab label="{{ 'supply.supplyNotices' | cxTranslate}}"></mat-tab>
+
+    </mat-tab-group>
+</div>
+
+select(event: { index: number, tab: MatTab }) {
+    this.selectedIndex$ = event.index;
+    switch(event.index) {
+      case 0: {
+        this.routingService.goByUrl('/uscf/supply?tab=allocations');
+        break;
+      }
+      case 1: {
+        this.routingService.goByUrl('/uscf/supply?tab=bols');
+        break;
+      }
+      case 2: {
+        this.routingService.goByUrl('/uscf/supply?tab=carrierDriverLastLift');
+        break;
+      }
+      case 3: {
+        this.routingService.goByUrl('/uscf/supply?tab=terminalPeakTimes');
+        break;
+      }
+      case 4: {
+        this.routingService.goByUrl('/uscf/supply?tab=supplyNotices');
+        break;
+      }
+      default: {
+        this.routingService.goByUrl('/uscf/supply?tab=allocations');
+      }
+    }
+  }
+############################################Router mailtoLink
+<a id="user_myProfile_link" [routerLink]="['/profile']" role="link"
+              [attr.aria-label]="'header.myAccountLogin.myProfile' | cxTranslate">{{ "header.myAccountLogin.myprofile" | cxTranslate }}</a>
+
+
