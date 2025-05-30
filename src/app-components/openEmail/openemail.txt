@@ -106,3 +106,157 @@ select(event: { index: number, tab: MatTab }) {
               [attr.aria-label]="'header.myAccountLogin.myProfile' | cxTranslate">{{ "header.myAccountLogin.myprofile" | cxTranslate }}</a>
 
 
+####################Form creation and submit in ts file##############
+private readonly renderer: Renderer2;
+redirectWithPostData(redirectUrl, redirectInputInfo) {
+    const form = this.renderer.createElement('form');
+    this.renderer.setAttribute(form, 'method', 'POST');
+    this.renderer.setAttribute(form, 'target', '_blank');
+    this.renderer.setAttribute(form, 'action', redirectUrl);
+
+    Object.keys(redirectInputInfo).forEach(key => { 
+      const input = this.renderer.createElement('input');
+      this.renderer.setAttribute(input, 'type', 'hidden');
+      this.renderer.setAttribute(input, 'name', key);
+      this.renderer.setAttribute(input, 'value', redirectInputInfo[key]);
+      this.renderer.appendChild(form, input);
+    });
+    this.renderer.appendChild(document.body, form);
+    form.submit();
+  }
+  
+##################################To check global route navigation#################
+this.router.events
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((event) => event instanceof NavigationStart)
+      )
+      .subscribe((event: NavigationStart) => {
+        const targetUrl = event?.url;
+        const currentRoute = this.router.routerState;
+        const urlTree = this.router.parseUrl(targetUrl || '');
+        if (event?.url.indexOf(CF_CREATE_ORDER_NAV) > 0) {
+          this.router.navigateByUrl(currentRoute.snapshot.url, {
+            skipLocationChange: false,
+          });
+          if (this.analyticsEventService.isCfCustomer() || this.analyticsEventService.isAvlCustomer()) {
+            this.analyticsEventService.entryEvent(NEW_ORDER_CREATE, NEW_ORDER_NAVIGATION);
+          }
+          this.cfAccountsService.openAccountDetailsModal(this.shipTos);
+        } else if (targetUrl?.includes(SSO_LEGAL_DISCLAIMER_URL) && urlTree?.queryParams?.id) {
+          this.router.navigateByUrl(currentRoute.snapshot.url, {
+            skipLocationChange: false,
+          });
+          this.thirdPartySsoService.openLegalDiclaimerModal(urlTree?.queryParams?.id);
+        }
+      });
+##############################include dynamic js#################################
+loadScripts(): void {
+    
+    const dynamicScripts = [
+      {
+        path: '../../../assets/js/jquery-1.12.4.js',
+        id: 'mcms_jquery'
+      },
+      {
+        path: '../../../assets/js/bootstrap.js',
+        id: 'mcms_bootstrap'
+      }
+
+  ];
+   if(this.downloadJs){
+      dynamicScripts.push({id: 'mcms_external', path: this.downloadJs});
+    }
+    for (const script of dynamicScripts) {
+      if (!this.winRef.document.getElementById(script.id) || script.id === 'mcms_external') {
+        const node = this.winRef.document.createElement('script');
+        node.src = script.path;
+        node.id = script.id;
+        node.type = 'text/javascript';
+        node.async = false;
+        this.winRef.document.getElementsByTagName('head')[0].appendChild(node);
+      }
+    }
+  }
+  
+#################################################HOw different environment files are maintained############
+export const environment = {
+  settings: 'default',
+  production: false,
+  staging: false,
+  development: true,
+  storeFrontConfig: {
+    backend: {
+      occ: {
+        baseUrl:'https://api.s1.markethub2.shell.com',
+        prefix: '/occ/v2/',
+        legacy: false,
+      },
+    },
+    authentication: {
+      client_id: 'mobile_android',
+      client_secret: 'secret',*************
+	  
+	  
+import { environment as dev } from '../../../environments/environment.dev';
+import { environment as prod } from '../../../environments/environment.prod';
+import { environment as uat } from '../../../environments/environment.uat';
+import { environment as s4 } from '../../../environments/environment.s4';
+import { environment as s3 } from '../../../environments/environment.s3';
+
+getEnvironemnt() {
+    const endpoint = window.location.href.toLowerCase();
+    if (endpoint.includes(WebConstants.D1)) {
+      return dev;
+    } else if (endpoint.includes(WebConstants.ORIGIN_S1) || endpoint.includes(WebConstants.GREEN_ORIGIN_S1) ) {
+      return qa;
+    } else if (endpoint.includes(WebConstants.P1) || endpoint.includes(WebConstants.ORIGIN_P1) || endpoint.includes(WebConstants.GREEN_ORIGIN_P1)) {
+      return prod;
+    } else if (endpoint.includes(WebConstants.AKAMAI_S2) || endpoint.includes(WebConstants.GREEN_ORIGIN_S2) || endpoint.includes(WebConstants.ORIGIN_S2)) {
+      return uat;
+    } else if (endpoint.includes(WebConstants.ORIGIN_S4)) {
+      return s4;
+    } else if (endpoint.includes(WebConstants.ORIGIN_S3)) {
+      return s3;
+    } else {
+      return local;
+    }
+  }
+  
+########################Ways to read modal##########################
+  dfoaExit(){
+    let modalRef = this.modalService.open(ExitOrderModalComponent, {
+      centered: true,
+      size: 'lg',
+      windowClass: 'exit-order-modal',
+    });
+    let cInstance = modalRef.componentInstance;
+    modalRef.result.finally(() => {
+      if (cInstance.isExit) {
+        this.navigated = true;
+        this.accountLocationService.quitDFOACreateOrderFlow(true);
+        this.routing.goByUrl(DFOA_HOME_PAGE);
+      }
+    });
+  }
+  
+  openUploadPinModal(): void {
+    this.modalRef = this.modalService.open(UsCfUploadPinModalComponent, {
+      windowClass: 'modal-dialog-centered cf-us-uploadpin',
+      centered: true,
+      size: 'lg'
+    });
+    this.subscription.add(this.modalRef.modalClose.asObservable().subscribe((data) => {
+      if(data === 'success') {
+        this.uploadClicked = true;
+      }
+    }));
+    this.analyticsActionEvent(UPLOAD_PINS, this.uscfService.tabs[this.buttonSelected]);
+  }
+######################################Base http service###################
+getCMTerminalData(soldTos: string[]): Observable<FilterData[]> {
+      const body = { soldTos} // if parameter name is same then use shorthand
+      const headers = this.http.getJsonHttpHeader();
+      return this.http.post<FilterData[]>(CM_TERMINALS, body, {}, {headers});
+    }
+	####################
