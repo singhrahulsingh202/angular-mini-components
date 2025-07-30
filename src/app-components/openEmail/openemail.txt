@@ -260,3 +260,44 @@ getCMTerminalData(soldTos: string[]): Observable<FilterData[]> {
       return this.http.post<FilterData[]>(CM_TERMINALS, body, {}, {headers});
     }
 	####################
+	
+
+############################BE Email attachement###################
+
+public void generateEmailAlertsCsvData(CreateEmailRequestData createEmailRequestData, Set<PricesAlertsData> alertData) throws MarkethubFacadeException {
+    if (createEmailRequestData == null || CollectionUtils.isEmpty(alertData)) {
+      throw new IllegalArgumentException("Invalid input: createEmailRequestData or alertData is null/empty");
+    }
+    try {
+      var csvData = usfAlertsPriceCsvDataConverter.convert(alertData);
+      LOG.info("bulk email csv size {}", Objects.nonNull(csvData) ? csvData.getRows().size() : null);
+      PricesAlertsData priceData = alertData.iterator().next();
+      var fileName = String.format("%s_%s_%s.csv",
+        priceData.getSoldTo(),
+        priceData.getCompanyName(),
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern(MobilityusfuelsfacadesConstants.CUSTOM_DATE_FORMAT))
+      );
+      if (Objects.nonNull(csvData)) {
+        setAttachment(createEmailRequestData, csvData, fileName);
+      }
+    } catch (IOException ex) {
+      throw new MarkethubFacadeException("Error while generating email alerts CSV", ex);
+    }
+  }
+
+  private void setAttachment(CreateEmailRequestData createEmailRequestData, CsvData csvData, String fileName) throws IOException {
+    final var attachment = new Attachment();
+    final byte[] content = this.generateCsvContent(csvData);
+    final var base64Content = Base64.getEncoder().encodeToString(content);
+    LOG.info("bulk email csv content {}", content.length);
+    attachment.setBase64Content(base64Content);
+    attachment.setFilename(fileName);
+    attachment.setContentType(CONTENT_TYPE_CSV);
+    List<Attachment> attachments = new ArrayList<>();
+    attachments.add(attachment);
+    createEmailRequestData.setAttachments(attachments);
+  }
+#########################################################
+
+responseentity return:
+return new ResponseEntity<>(mapper.readValue(stringPayload, ConfigurationData.class), HttpStatus.OK);

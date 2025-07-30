@@ -1,0 +1,66 @@
+package com.shell.mh.helper;
+
+import de.hybris.platform.acceleratorservices.config.SiteConfigService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Resource;
+import javax.crypto.Cipher;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+
+import java.util.Base64;
+
+public class MarkethubEncryptionHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MarkethubEncryptionHelper.class);
+
+    private static final String ENCRYPTEDKEY = "markethub.encrypt.key";
+
+    private static final String AES_ALGORITHM = "AES";
+
+    @Resource(name = "siteConfigService")
+    private SiteConfigService siteConfigService;
+
+    public String encryptData(String clientSecret) {
+        {
+            String key = siteConfigService.getProperty(ENCRYPTEDKEY);
+            String clientSecretEncrypted = "";
+            try {
+                Key keyE = new SecretKeySpec(key.getBytes(), AES_ALGORITHM);
+                //skipping this sonar fix as legacy 1.0 application decryption relied on this algorithm
+                Cipher cipher = Cipher.getInstance(AES_ALGORITHM);// NOSONAR
+                // encrypt the text
+                cipher.init(Cipher.ENCRYPT_MODE, keyE);
+                byte[] encrypted = cipher.doFinal(clientSecret.getBytes());
+                clientSecretEncrypted = org.apache.commons.codec.binary.Base64.encodeBase64String(encrypted);
+            } catch (Exception e) {
+                LOG.error("Exception occurred while hashing the clientSecret. Setting empty string for clientSecret instead: {}",
+                        ExceptionUtils.getStackTrace(e));
+                clientSecretEncrypted = "";
+            }
+            return clientSecretEncrypted;
+        }
+    }
+
+    public String decryptData(String clientSecret) {
+        String key = siteConfigService.getProperty(ENCRYPTEDKEY);
+        String originalClientSecret = "";
+        try {
+            Key keyE = new SecretKeySpec(key.getBytes(), AES_ALGORITHM);
+            //skipping this sonar fix as legacy 1.0 application decryption relied on this algorithm
+            Cipher cipher = Cipher.getInstance(AES_ALGORITHM);// NOSONAR
+            // decrypt the text
+            cipher.init(Cipher.DECRYPT_MODE, keyE);
+            byte[] originalData = cipher.doFinal(Base64.getDecoder().decode(clientSecret));
+            originalClientSecret = new String(originalData);
+        }catch (Exception e) {
+            LOG.error("Exception occurred while decrypting the clientSecret. Setting empty string for clientSecret instead: {}",
+                    ExceptionUtils.getStackTrace(e));
+            originalClientSecret = "";
+        }
+        return originalClientSecret;
+    }
+}
